@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const router = express.Router();
 require('dotenv').config();
 
 const auth = require('./api/auth/auth');
@@ -21,6 +22,7 @@ mongoose.connect(MONGO_URI + MONGO_DB_NAME + AUTH_SOURCE)
 
 app.use(cors());
 app.use(express.json());
+app.use(router);
 app.use('/api/users', auth);
 app.use('/api/devices', devices);
 
