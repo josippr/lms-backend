@@ -1,11 +1,15 @@
 {
   "name": "lms-backend",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "repo for lms-backend",
   "main": "index.js",
   "scripts": {
     "test": "test"
   },
   "author": "Josip Prpić",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0"
+  }
 }
