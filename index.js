@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const auth = require('./api/auth/auth');
+const devices = require('./api/devices/devices');
 
 const app = express();
 const port = process.env.PORT;
@@ -21,6 +22,7 @@ mongoose.connect(MONGO_URI + MONGO_DB_NAME + AUTH_SOURCE)
 app.use(cors());
 app.use(express.json());
 app.use('/api/users', auth);
+app.use('/api/devices', devices);
 
 app.get('/', (req, res) => {
   res.send("Hello World!");
