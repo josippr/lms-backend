@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
+const verifyToken = require('../../middleware/verifyToken');
 const router = express.Router();
 
 // MongoDB Device Schema
@@ -39,7 +40,7 @@ mongoose.connect(mongoURI, {
 .then(() => console.log('MongoDB connected'))
 .catch(err => console.error('MongoDB connection error:', err));
 
-router.get("/api/devices", async (_, res) => {
+router.get("/", async (_, res) => {
   try {
     const devices = await Device.find();
     res.json(devices);
