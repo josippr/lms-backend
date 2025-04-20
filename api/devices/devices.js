@@ -8,7 +8,7 @@ const router = express.Router();
 // MongoDB Device Schema
 const deviceSchema = new mongoose.Schema({
   _id: mongoose.Schema.Types.ObjectId,
-  idOfTheItem: { type: String, required: true }, // Fixed typo in field name
+  idOfTheItem: { type: String, required: true },
   ip: { 
     type: String,
     required: true,
@@ -26,7 +26,7 @@ const deviceSchema = new mongoose.Schema({
   },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
-}, { collection: 'info' }); // Explicitly setting collection name to 'info'
+}, { collection: 'info' });
 
 const Device = mongoose.model('Device', deviceSchema);
 
@@ -40,7 +40,7 @@ mongoose.connect(mongoURI, {
 .then(() => console.log('MongoDB connected'))
 .catch(err => console.error('MongoDB connection error:', err));
 
-router.get("/", async (_, res) => {
+router.get("/", verifyToken, async (_, res) => {
   try {
     const devices = await Device.find();
     res.json(devices);
