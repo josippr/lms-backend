@@ -1,0 +1,39 @@
+kind: pipeline
+type: docker
+name: default
+
+environment:
+      SSH_USERNAME:
+        from_secret: ssh_username
+      SSH_PASSWORD:
+        from_secret: ssh_password
+      VM_IP:
+        from_secret: vm_ip
+
+steps:
+  - name: build-image
+    image: docker:dind
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
+    commands:
+      - docker build -t lms-backend .
+
+  - name: deploy
+    image: alpine:latest  # Using alpine for SSH deployment
+    commands:
+      - apk add --no-cache openssh sshpass
+      - |
+        sshpass -p ${SSH_PASSWORD} ssh -o StrictHostKeyChecking=no -p 22 ${SSH_USERNAME}@${VM_IP} << EOF
+        cd /home/josip/test-servers/lms-backend
+        git pull origin master
+        docker-compose down
+        docker-compose build
+        docker-compose up -d
+        docker system prune -f
+        EOF
+
+volumes:
+  - name: dockersock
+    host:
+      path: /var/run/docker.sock
