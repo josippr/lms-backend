@@ -20,12 +20,12 @@ steps:
       - docker build -t lms-backend .
 
   - name: deploy
-    image: alpine:latest  # Using alpine for SSH deployment
+    image: alpine:latest 
     commands:
       - apk add --no-cache openssh sshpass
       - |
         sshpass -p ${SSH_PASSWORD} ssh -o StrictHostKeyChecking=no -p 22 ${SSH_USERNAME}@${VM_IP} << EOF
-        cd /home/josip/test-servers/lms-backend
+        cd /mnt/data/deployments/lms-backend
         git pull origin master
         docker-compose down
         docker-compose build
