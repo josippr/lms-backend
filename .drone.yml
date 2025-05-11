@@ -4,7 +4,7 @@ name: default
 
 steps:
   - name: build-image
-    image: docker:dind
+    image: docker
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
@@ -12,13 +12,17 @@ steps:
       - docker build -t lms-backend .
 
   - name: deploy
-    image: docker
+    image: docker:latest
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
       - name: hostdata
         path: /mnt/data
     commands:
+      - apk add --no-cache curl
+      - curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+      - chmod +x /usr/local/bin/docker-compose
+      - docker-compose --version
       - cd /mnt/data/deployments/lms-backend
       - git pull origin master
       - docker-compose down
@@ -30,6 +34,7 @@ volumes:
   - name: dockersock
     host:
       path: /var/run/docker.sock
+
   - name: hostdata
     host:
       path: /mnt/data
