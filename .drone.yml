@@ -11,37 +11,18 @@ steps:
     commands:
       - docker build -t lms-backend .
 
-  - name: debug-secrets
-    image: alpine
-    environment:
-      SSH_USERNAME: josip
-      SSH_PASSWORD: M5V6EbbpM5V6Ebbp
-      VM_IP: 4.180.57.219
-    commands:
-      - echo "USERNAME=$SSH_USERNAME"
-      - echo "VM_IP=$VM_IP"
-      - echo "PW_LENGTH=${#SSH_PASSWORD}"
-
-
   - name: deploy
-    image: alpine:latest
-    environment:
-      SSH_USERNAME: josip
-      SSH_PASSWORD: M5V6EbbpM5V6Ebbp
-      VM_IP: 4.180.57.219
+    image: docker
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
     commands:
-      - apk add --no-cache openssh sshpass
-      - echo "user=$SSH_USERNAME, ip=$VM_IP, pw length=${#SSH_PASSWORD}"
-      - >
-        sshpass -p "${SSH_PASSWORD}" ssh -o StrictHostKeyChecking=no -p 22 "${SSH_USERNAME}@${VM_IP}" << 'EOF'
-        cd /mnt/data/deployments/lms-backend
-        git pull origin master
-        docker-compose down
-        docker-compose build
-        docker-compose up -d
-        docker system prune -f
-        EOF
-
+      - cd /mnt/data/deployments/lms-backend
+      - git pull origin master
+      - docker-compose down
+      - docker-compose build
+      - docker-compose up -d
+      - docker system prune -f
 
 volumes:
   - name: dockersock
