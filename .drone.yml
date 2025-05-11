@@ -16,6 +16,8 @@ steps:
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
+      - name: hostdata
+        path: /mnt/data
     commands:
       - cd /mnt/data/deployments/lms-backend
       - git pull origin master
@@ -28,3 +30,6 @@ volumes:
   - name: dockersock
     host:
       path: /var/run/docker.sock
+  - name: hostdata
+    host:
+      path: /mnt/data
