@@ -6,14 +6,16 @@ steps:
   - name: build-image
     image: docker:dind
     volumes:
-      - dockersock:/var/run/docker.sock
+      - name: dockersock
+        path: /var/run/docker.sock
     commands:
       - docker build -t lms-backend .
 
   - name: install-docker-compose
     image: docker:latest
     volumes:
-      - dockersock:/var/run/docker.sock
+      - name: dockersock
+        path: /var/run/docker.sock
     commands:
       - apk add --no-cache curl
       - curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
@@ -24,8 +26,10 @@ steps:
   - name: deploy
     image: docker:latest
     volumes:
-      - dockersock:/var/run/docker.sock
-      - hostdata:/mnt/data
+      - name: dockersock
+        path: /var/run/docker.sock
+      - name: hostdata
+        path: /mnt/data
     commands:
       - apk add --no-cache curl git
       - curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
