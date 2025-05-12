@@ -15,11 +15,11 @@ steps:
     image: alpine:latest
     environment:
       SSH_HOST:
-        from_secret: SSH_HOST
+        from_secret: ssh_host
       SSH_USER:
-        from_secret: SSH_USER
+        from_secret: ssh_username
       SSH_PASS:
-        from_secret: SSH_PASS
+        from_secret: ssh_password
     commands:
       - apk add --no-cache openssh sshpass
       - |
