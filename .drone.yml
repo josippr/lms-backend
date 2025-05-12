@@ -1,42 +1,53 @@
 kind: pipeline
-type: docker
-name: nodejs-app
+type: ssh
+name: nodejs-production-deploy
 
-volumes:
-  - name: docker_sock
-    host:
-      path: /var/run/docker.sock
-  - name: app_data
-    host:
-      path: /mnt/data/deployments/lms-backend
+# SSH connection configuration
+server:
+  host:
+    from_secret: SSH_HOST
+  user:
+    from_secret: SSH_USER
+  ssh_key:
+    from_secret: SSH_KEY
+  port: 22
+  # Timeout settings
+  dial_timeout: 30s
+  execution_timeout: 10m
+
+# Environment variables (optional)
+environment:
+  NODE_ENV: production
+  COMPOSE_PROJECT_NAME: lms-backend
 
 steps:
-  - name: verify-access
-    image: alpine
-    volumes:
-      - name: app_data
-        path: /app
-    commands:
-      - ls -la /app
-      - cat /app/Dockerfile
-        
-  - name: build
-    image: docker:cli
-    volumes:
-      - name: docker_sock
-        path: /var/run/docker.sock
+  # Verify access and files
+  - name: check-environment
     commands:
       - cd /mnt/data/deployments/lms-backend
-      - docker build -t lms-backend .
+      - ls -la
+      - test -f Dockerfile || (echo "Dockerfile missing" && exit 1)
+      - test -f docker-compose.yml || (echo "docker-compose.yml missing" && exit 1)
+      - docker-compose --version
 
-  - name: deploy
-    image: docker:cli
-    volumes:
-      - name: docker_sock
-        path: /var/run/docker.sock
-      - name: app_data
-        path: /app
+  # Build and deploy
+  - name: deploy-application
     commands:
-      - cd /app
-      - docker-compose down --remove-orphans
-      - docker-compose up -d --build
+      - cd /mnt/data/deployments/lms-backend
+      - echo "Stopping existing containers..."
+      - docker-compose down --remove-orphans || true
+      - echo "Building new containers..."
+      - docker-compose build --no-cache --pull
+      - echo "Starting services..."
+      - docker-compose up -d
+      - echo "Cleaning up..."
+      - docker image prune -f
+      - echo "Deployment complete!"
+
+  # Health check (optional)
+  - name: verify-deployment
+    commands:
+      - sleep 10 # Wait for containers to start
+      - curl -I http://localhost:1055 || true
+      - docker-compose ps
+      - docker-compose logs --tail=50
