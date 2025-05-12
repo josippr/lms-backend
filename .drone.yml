@@ -18,14 +18,12 @@ steps:
         from_secret: SSH_HOST
       SSH_USER:
         from_secret: SSH_USER
-      SSH_KEY:
-        from_secret: SSH_KEY
       SSH_PASS:
         from_secret: SSH_PASS
     commands:
       - apk add --no-cache openssh sshpass
       - |
-        sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p 22 ${SSH_USER}@${SSH_HOST} << 'EOF'
+        sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p 22 ${SSH_USER}@${SSH_HOST} << EOF
         cd /mnt/data/deployments/lms-backend
         git pull origin master
         docker-compose down
