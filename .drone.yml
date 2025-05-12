@@ -13,7 +13,7 @@ steps:
 
   - name: deploy
     image: alpine:latest
-    environment:
+    settings:
       SSH_HOST:
         from_secret: SSH_HOST
       SSH_USER:
