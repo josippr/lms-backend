@@ -27,20 +27,18 @@ steps:
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
-      - name: hostdata
-        path: /mnt/data
     commands:
-      - echo "Verifying docker-compose"
+      - apk add --no-cache curl
+      - curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      - chmod +x /usr/local/bin/docker-compose
+      - export PATH=$PATH:/usr/local/bin
       - docker-compose --version
-      - echo "Current PATH: $PATH"
-      - ls -l /usr/local/bin
-      - cd /mnt/data/deployments/lms-backend
+      - cd /mnt/data/deployments/lms-backend || exit 1
       - git pull origin master
       - docker-compose down
       - docker-compose build
       - docker-compose up -d
       - docker system prune -f
-
 volumes:
   - name: dockersock
     host:
