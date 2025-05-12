@@ -2,44 +2,36 @@ kind: pipeline
 type: docker
 name: default
 
-steps:
-  - name: build-image
-    image: docker:dind
-    volumes:
-      - name: dockersock
-        path: /var/run/docker.sock
-    commands:
-      - docker build -t lms-backend .
-
-  - name: install-docker-compose-v1
-    image: docker:latest
-    volumes:
-      - name: dockersock
-        path: /var/run/docker.sock
-    commands:
-      - apk add --no-cache curl py3-pip python3-dev libffi-dev openssl-dev gcc libc-dev make
-      - pip install --user --ignore-installed docker-compose==1.29.2
-      - ln -s /root/.local/bin/docker-compose /usr/local/bin/docker-compose
-      - docker-compose --version
-
-  - name: deploy
-    image: docker/compose:1.29.2
-    volumes:
-      - name: dockersock
-        path: /var/run/docker.sock
-      - name: hostdata
-        path: /mnt/data
-    commands:
-      - cd /mnt/data/deployments/lms-backend
-      - git pull origin master
-      - docker-compose down
-      - docker-compose build
-      - docker-compose up -d
-
 volumes:
-  - name: dockersock
+  - name: docker_sock
     host:
       path: /var/run/docker.sock
-  - name: hostdata
+  - name: app_directory
     host:
-      path: /mnt/data
+      path: /mnt/data/deployments/lms-backend 
+
+steps:
+  - name: build
+    image: docker:cli
+    volumes:
+      - name: docker_sock
+        path: /var/run/docker.sock
+      - name: app_directory
+        path: /app
+    commands:
+      - cd /app
+      - docker build -t lms-backend .
+
+  - name: deploy
+    image: docker:cli
+    volumes:
+      - name: docker_sock
+        path: /var/run/docker.sock
+      - name: app_directory
+        path: /app
+    commands:
+      - cd /app
+      - docker-compose down
+      - docker-compose build --no-cache
+      - docker-compose up -d
+      - docker system prune -f
