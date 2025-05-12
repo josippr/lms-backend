@@ -1,14 +1,14 @@
 kind: pipeline
 type: docker
-name: default
+name: nodejs-app
 
 volumes:
   - name: docker_sock
     host:
       path: /var/run/docker.sock
-  - name: app_directory
+  - name: app_data
     host:
-      path: /mnt/data/deployments/lms-backend 
+      path: /mnt/data/deployments/lms-backend
 
 steps:
   - name: build
@@ -16,8 +16,8 @@ steps:
     volumes:
       - name: docker_sock
         path: /var/run/docker.sock
-      - name: app_directory
-        path: /app
+      - name: app_data
+        path: /app 
     commands:
       - cd /app
       - docker build -t lms-backend .
@@ -27,11 +27,9 @@ steps:
     volumes:
       - name: docker_sock
         path: /var/run/docker.sock
-      - name: app_directory
+      - name: app_data
         path: /app
     commands:
       - cd /app
-      - docker-compose down
-      - docker-compose build --no-cache
-      - docker-compose up -d
-      - docker system prune -f
+      - docker-compose down --remove-orphans
+      - docker-compose up -d --build
