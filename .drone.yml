@@ -11,15 +11,22 @@ volumes:
       path: /mnt/data/deployments/lms-backend
 
 steps:
+  - name: verify-access
+      image: alpine
+      volumes:
+        - name: app_data
+          path: /app
+      commands:
+        - ls -la /app
+        - cat /app/Dockerfile
+        
   - name: build
     image: docker:cli
     volumes:
       - name: docker_sock
         path: /var/run/docker.sock
-      - name: app_data
-        path: /app 
     commands:
-      - cd /app
+      - cd /mnt/data/deployments/lms-backend
       - docker build -t lms-backend .
 
   - name: deploy
