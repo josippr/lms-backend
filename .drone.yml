@@ -27,18 +27,17 @@ steps:
     commands:
       - apk add --no-cache openssh-client
       - mkdir -p ~/.ssh
-      - echo "$SSH_KEY" > ~/.ssh/id_rsa
-      - chmod 600 ~/.ssh/id_rsa
+      - echo "$SSH_KEY" > ~/.ssh/id_rsa_lms
+      - chmod 600 ~/.ssh/id_rsa_lms
       - |
         ssh -o StrictHostKeyChecking=no \
-            -i ~/.ssh/id_rsa \
+            -i ~/.ssh/id_rsa_lms \
             ${SSH_USER}@${SSH_HOST} \
             "cd /mnt/data/deployments/lms-backend && \
             git pull origin master && \
             docker-compose down && \
             docker-compose build && \
             docker-compose up -d"
-
 volumes:
   - name: dockersock
     host:
