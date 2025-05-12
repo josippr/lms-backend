@@ -6,39 +6,38 @@ steps:
   - name: build-image
     image: docker:dind
     volumes:
-      - name: dockersock
-        path: /var/run/docker.sock
+      - dockersock:/var/run/docker.sock
     commands:
       - docker build -t lms-backend .
 
   - name: install-docker-compose
     image: docker:latest
+    volumes:
+      - dockersock:/var/run/docker.sock
     commands:
       - apk add --no-cache curl
       - curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
-      - echo "Current PATH: $PATH"
-      - ls -l /usr/local/bin
       - chmod +x /usr/local/bin/docker-compose
       - echo "docker-compose version:"
-      - docker-compose --version
+      - /usr/local/bin/docker-compose --version
 
   - name: deploy
     image: docker:latest
     volumes:
-      - name: dockersock
-        path: /var/run/docker.sock
+      - dockersock:/var/run/docker.sock
+      - hostdata:/mnt/data
     commands:
-      - apk add --no-cache curl
+      - apk add --no-cache curl git
       - curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
       - chmod +x /usr/local/bin/docker-compose
-      - export PATH=$PATH:/usr/local/bin
-      - docker-compose --version
+      - /usr/local/bin/docker-compose --version
       - cd /mnt/data/deployments/lms-backend || exit 1
       - git pull origin master
-      - docker-compose down
-      - docker-compose build
-      - docker-compose up -d
+      - /usr/local/bin/docker-compose down
+      - /usr/local/bin/docker-compose build
+      - /usr/local/bin/docker-compose up -d
       - docker system prune -f
+
 volumes:
   - name: dockersock
     host:
