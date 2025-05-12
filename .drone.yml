@@ -26,7 +26,8 @@ steps:
         echo username=$SSH_USER
         echo password=$SSH_PASS
         echo host=$SSH_HOST
-        sshpass -p "${SSH_PASS}" ssh -o StrictHostKeyChecking=no -p 22 $SSH_USER@$SSH_HOST << EOF
+        test -n "$SSH_PASS" || { echo "SSH_PASS is empty"; exit 1; }
+        sshpass -vv -p "${SSH_PASS}" ssh -o StrictHostKeyChecking=no -p 22 $SSH_USER@$SSH_HOST << EOF
         cd /mnt/data/deployments/lms-backend
         git pull origin master
         docker-compose down
