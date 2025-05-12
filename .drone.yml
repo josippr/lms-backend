@@ -25,7 +25,7 @@ steps:
     commands:
       - apk add --no-cache openssh sshpass
       - |
-        sshpass -p "M5V6Ebbp" ssh -o StrictHostKeyChecking=no -p 22 josip@4.180.57.219 << EOF
+        sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p 22 $SSH_USER@$SSH_HOST << EOF
         cd /mnt/data/deployments/lms-backend
         git pull origin master
         docker-compose down
