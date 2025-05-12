@@ -12,13 +12,13 @@ volumes:
 
 steps:
   - name: verify-access
-      image: alpine
-      volumes:
-        - name: app_data
-          path: /app
-      commands:
-        - ls -la /app
-        - cat /app/Dockerfile
+    image: alpine
+    volumes:
+      - name: app_data
+        path: /app
+    commands:
+      - ls -la /app
+      - cat /app/Dockerfile
         
   - name: build
     image: docker:cli
