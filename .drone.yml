@@ -1,53 +1,43 @@
 kind: pipeline
-type: ssh
-name: nodejs-production-deploy
+type: docker
+name: default
 
-# SSH connection configuration
-server:
-  host:
-    from_secret: SSH_HOST
-  user:
-    from_secret: SSH_USER
-  ssh_key:
-    from_secret: SSH_KEY
-  port: 22
-  # Timeout settings
-  dial_timeout: 30s
-  execution_timeout: 10m
-
-# Environment variables (optional)
 environment:
   NODE_ENV: production
   COMPOSE_PROJECT_NAME: lms-backend
 
 steps:
-  # Verify access and files
-  - name: check-environment
+  - name: build-image
+    image: docker:dind
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
     commands:
-      - cd /mnt/data/deployments/lms-backend
-      - ls -la
-      - test -f Dockerfile || (echo "Dockerfile missing" && exit 1)
-      - test -f docker-compose.yml || (echo "docker-compose.yml missing" && exit 1)
-      - docker-compose --version
+      - docker build -t lms-backend .
 
-  # Build and deploy
-  - name: deploy-application
+  - name: deploy
+    image: alpine:latest
+    environment:
+      SSH_HOST:
+        from_secret: SSH_HOST
+      SSH_USER:
+        from_secret: SSH_USER
+      SSH_KEY:
+        from_secret: SSH_KEY
     commands:
-      - cd /mnt/data/deployments/lms-backend
-      - echo "Stopping existing containers..."
-      - docker-compose down --remove-orphans || true
-      - echo "Building new containers..."
-      - docker-compose build --no-cache --pull
-      - echo "Starting services..."
-      - docker-compose up -d
-      - echo "Cleaning up..."
-      - docker image prune -f
-      - echo "Deployment complete!"
+      - apk add --no-cache openssh-client
+      - mkdir -p ~/.ssh
+      - echo "$SSH_KEY" > ~/.ssh/id_rsa
+      - chmod 600 ~/.ssh/id_rsa
+      - ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} "
+          cd /mnt/data/deployments/lms-backend
+          git pull origin master
+          docker-compose down
+          docker-compose build
+          docker-compose up -d
+        "
 
-  # Health check (optional)
-  - name: verify-deployment
-    commands:
-      - sleep 10 # Wait for containers to start
-      - curl -I http://localhost:1055 || true
-      - docker-compose ps
-      - docker-compose logs --tail=50
+volumes:
+  - name: dockersock
+    host:
+      path: /var/run/docker.sock
