@@ -29,13 +29,15 @@ steps:
       - mkdir -p ~/.ssh
       - echo "$SSH_KEY" > ~/.ssh/id_rsa
       - chmod 600 ~/.ssh/id_rsa
-      - ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} "
-          cd /mnt/data/deployments/lms-backend
-          git pull origin master
-          docker-compose down
-          docker-compose build
-          docker-compose up -d
-        "
+      - |
+        ssh -o StrictHostKeyChecking=no \
+            -i ~/.ssh/id_rsa \
+            ${SSH_USER}@${SSH_HOST} \
+            "cd /mnt/data/deployments/lms-backend && \
+            git pull origin master && \
+            docker-compose down && \
+            docker-compose build && \
+            docker-compose up -d"
 
 volumes:
   - name: dockersock
