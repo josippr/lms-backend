@@ -1,15 +1,11 @@
 const express = require('express');
 const { MongoClient } = require('mongodb');
-const cors = require('cors');
 
-const app = express();
-const PORT = 3000;
-const MONGO_URL = process.env.MONGO_URI_ORIGINAL
+const router = express.Router();
+const MONGO_URL = process.env.MONGO_URI_ORIGINAL;
 const DB_NAME = process.env.MONGO_DB_NAME;
 
-app.use(cors());
-
-app.get('/api/data', async (req, res) => {
+router.get('/data', async (req, res) => {
   const client = new MongoClient(MONGO_URL);
   try {
     await client.connect();
