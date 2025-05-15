@@ -6,6 +6,7 @@ require('dotenv').config();
 
 const auth = require('./api/auth/auth');
 const devices = require('./api/devices/devices');
+const data = require('./api/data/data');
 
 const app = express();
 const port = process.env.PORT;
@@ -26,6 +27,7 @@ app.use(express.json());
 app.use(router);
 app.use('/api/users', auth);
 app.use('/api/devices', devices);
+app.use('/api/data', data);
 
 app.get('/', (req, res) => {
   res.send("Hello World!");
