@@ -30,7 +30,7 @@ app.use('/api/devices', devices);
 app.use('/api/data', data);
 
 app.get('/', (req, res) => {
-  res.send("Hello World!");
+  res.send("Hello World!!!!!! How are you?");
 });
 
 app.listen(port, () => {
