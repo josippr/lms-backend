@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const rateLimit = require("express-rate-limit");
 const mongoose = require('mongoose');
 const router = express.Router();
 require('dotenv').config();
@@ -7,6 +8,7 @@ require('dotenv').config();
 const auth = require('./api/auth/auth');
 const devices = require('./api/devices/devices');
 const data = require('./api/data/data');
+const registerDevice = require('./api/register-device/register-device');
 
 const app = express();
 const port = process.env.PORT;
@@ -15,6 +17,12 @@ const MONGO_URI = process.env.MONGO_URI;
 const MONGO_URI_ORIGINAL = process.env.MONGO_URI_ORIGINAL;
 const MONGO_DB_NAME = process.env.MONGO_DB_NAME;
 const AUTH_SOURCE = process.env.AUTH_SOURCE;
+
+// 10 requests per 15 minutes
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+});
 
 // mongoose.set('debug', true);
 mongoose.connect(MONGO_URI_ORIGINAL + MONGO_DB_NAME + AUTH_SOURCE)
@@ -28,6 +36,7 @@ app.use(router);
 app.use('/api/users', auth);
 app.use('/api/devices', devices);
 app.use('/api/data', data);
+app.use('/api/register-device', registerDevice, limiter);
 
 app.get('/', (req, res) => {
   res.send("Hello World!!!!!! How are you?");
