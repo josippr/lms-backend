@@ -1,9 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const verifyToken = require("../../middleware/verifyToken");
-const Device = require("../../models/device");
-
-require('dotenv').config();
+const { MongoClient } = require("mongodb");
+require("dotenv").config();
 
 const MONGO_URL = process.env.MONGO_URI_ORIGINAL;
 const DB_NAME = process.env.MONGO_DB_NAME;
@@ -17,16 +16,21 @@ router.post("/api/register-device", verifyToken, async (req, res) => {
     return res.status(403).json({ error: "Token does not match device serial" });
   }
 
-  // Check if already registered
-  const device = await Device.findOne({ serial });
-  if (device && device.registered) {
-    return res.status(200).json({ message: "Already registered" });
-  }
+  let client;
+  try {
+    client = await MongoClient.connect(MONGO_URL);
+    const db = client.db(DB_NAME);
+    const collection = db.collection(DB_COLLECTION);
 
-  const updated = await Device.findOneAndUpdate(
-    { serial },
-    {
+    const existing = await collection.findOne({ serial });
+
+    if (existing?.registered) {
+      return res.status(200).json({ message: "Already registered" });
+    }
+
+    const update = {
       $set: {
+        serial,
         deviceName,
         registered: true,
         registeredAt: new Date(),
@@ -34,15 +38,25 @@ router.post("/api/register-device", verifyToken, async (req, res) => {
         license: "basic",
         owner: "pending",
       },
-    },
-    { upsert: true, new: true }
-  );
+    };
 
-  res.json({
-    success: true,
-    license: updated.license,
-    owner: updated.owner,
-  });
+    const options = { upsert: true, returnDocument: "after" };
+
+    const result = await collection.findOneAndUpdate({ serial }, update, options);
+
+    res.json({
+      success: true,
+      license: result.value.license,
+      owner: result.value.owner,
+    });
+  } catch (err) {
+    console.error("Registration error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  } finally {
+    if (client) {
+      await client.close();
+    }
+  }
 });
 
 module.exports = router;

@@ -5,5 +5,5 @@ const tokenSchema = new moongose.Schema({
   used: Boolean,
   createdAt: { type: Date, default: Date.now },
   expiresAt: Date,
-});
+}, { collection: 'nodes' });
 module.exports = moongose.model('RegistrationToken', tokenSchema);
