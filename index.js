@@ -33,12 +33,14 @@ mongoose.connect(MONGO_URI_ORIGINAL + MONGO_DB_NAME + AUTH_SOURCE)
 
 app.use(cors());
 app.use(express.json());
-app.use(router);
+
 app.use('/api/users', auth);
 app.use('/api/devices', devices);
 app.use('/api/data', data);
 app.use('/api/register-device', registerDevice, limiter);
 app.use('/api/network', network);
+
+app.use(router);
 
 app.get('/', (req, res) => {
   res.send("Hello World!");
