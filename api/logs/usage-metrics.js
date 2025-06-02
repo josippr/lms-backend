@@ -4,7 +4,7 @@ const { MongoClient } = require('mongodb');
 
 require('dotenv').config();
 
-const MONGO_URL = process.env.MONGO_URI;
+const MONGO_URL = process.env.MONGO_URI_ORIGINAL;
 const DB_NAME = process.env.MONGO_DB_NAME;
 const COLLECTION_NAME = 'devices-metrics';
 
@@ -46,7 +46,7 @@ router.post('/usage-metrics', async (req, res) => {
     });
   } catch (err) {
     console.error('[ERROR] MongoDB insert failed:', err);
-    res.status(500).json({ error: 'Database error', details: err.message });
+    res.status(500).json({ error: 'Database error, db insert failed: ' , details: err.message });
   }
 });
 
