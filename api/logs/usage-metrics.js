@@ -9,8 +9,17 @@ const DB_NAME = process.env.MONGO_DB_NAME;
 const COLLECTION_NAME = 'devices-metrics';
 
 router.post('/usage-metrics', async (req, res) => {
+  console.log('Received request headers:', req.headers);
+  
   if (req.headers['x-ssl-client-verify'] !== 'SUCCESS') {
-    return res.status(403).json({ error: 'Client certificate verification failed' });
+    console.log('Client certificate verification failed. Headers:', req.headers);
+    return res.status(403).json({ 
+      error: 'Client certificate verification failed',
+      details: {
+        receivedVerifyHeader: req.headers['x-ssl-client-verify'],
+        requiredVerifyHeader: 'SUCCESS'
+      }
+    });
   }
 
   const data = req.body;
@@ -24,15 +33,20 @@ router.post('/usage-metrics', async (req, res) => {
     const db = client.db(DB_NAME);
     const col = db.collection(COLLECTION_NAME);
 
-    await col.insertOne({
+    const result = await col.insertOne({
       ...data,
       receivedAt: new Date()
     });
 
-    res.status(200).json({ status: 'ok' });
+    await client.close();
+    
+    res.status(200).json({ 
+      status: 'ok',
+      insertedId: result.insertedId
+    });
   } catch (err) {
     console.error('[ERROR] MongoDB insert failed:', err);
-    res.status(500).json({ error: 'Database error' });
+    res.status(500).json({ error: 'Database error', details: err.message });
   }
 });
 
