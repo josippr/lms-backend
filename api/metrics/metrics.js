@@ -33,6 +33,7 @@ router.get('/:uid', verifyToken, async (req, res) => {
 
         const results = await collection
             .find({ uid: uid })
+            .sort({ receivedAt: -1 })
             .limit(1)
             .toArray();
         console.log(`Found ${results.length} metrics for UID: ${uid}. Results:`, results);
