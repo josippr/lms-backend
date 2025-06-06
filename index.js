@@ -11,6 +11,7 @@ const data = require('./api/data/data');
 const registerDevice = require('./api/register-device/register-device');
 const network = require('./api/network/network');
 const usageMetrics = require('./api/logs/usage-metrics');
+const metrics = require('./api/metrics/metrics');
 
 const app = express();
 const port = process.env.PORT;
@@ -41,6 +42,7 @@ app.use('/api/data', data);
 app.use('/api/register-device', registerDevice, limiter);
 app.use('/api/network', network);
 app.use('/api/logs', usageMetrics);
+app.use('/api/metrics', metrics);
 
 app.use(router);
 
