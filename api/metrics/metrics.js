@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const MONGO_URI_ORIGINAL = process.env.MONGO_URI_ORIGINAL;
 const MONGO_DB_NAME = process.env.MONGO_DB_NAME;
 const AUTH_SOURCE = process.env.AUTH_SOURCE;
-const collectionName = 'device-metrics';
+const collectionName = 'devices-metrics';
 
 // Middleware: Apply JWT verification
 router.get('/:uid', verifyToken, async (req, res) => {
