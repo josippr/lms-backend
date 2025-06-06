@@ -1,6 +1,6 @@
 # LMS Backend
 
-This repository contains the backend API for the LMS (License Management System) platform. It is built with Node.js, Express, and MongoDB (using both Mongoose and native drivers). The backend provides authentication, device registration, metrics logging, and data management endpoints.
+This repository contains the backend API for the Network monitor platform. It is built with Node.js, Express, and MongoDB (using both Mongoose and native drivers). The backend provides authentication, device registration, metrics logging, and data management endpoints.
 
 ## Features
 
