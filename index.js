@@ -43,7 +43,6 @@ app.use('/api/register-device', registerDevice, limiter);
 app.use('/api/network', network);
 app.use('/api/network/intrusion', intrusion);
 app.use('/api/logs', usageMetrics);
-app.use('/api/metrics', metrics);
 
 app.use(router);
 
