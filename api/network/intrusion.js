@@ -28,24 +28,30 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields (uid, timestamp, alert)' });
   }
 
+  const alerts = Array.isArray(data.alert) ? data.alert : [data.alert];
+
+  const documents = alerts.map(alert => ({
+    uid: data.uid,
+    alert,
+    timestamp: new Date(data.timestamp),
+    receivedAt: new Date(),
+    sourceCertSubject: req.headers['x-ssl-client-subject'] || 'N/A'
+  }));
+
   try {
     const client = new MongoClient(MONGO_URL);
     await client.connect();
     const db = client.db(DB_NAME);
     const col = db.collection(COLLECTION_NAME);
 
-    const result = await col.insertOne({
-      ...data,
-      timestamp: new Date(data.timestamp),
-      receivedAt: new Date(),
-      sourceCertSubject: req.headers['x-ssl-client-subject'] || 'N/A',
-    });
+    const result = await col.insertMany(documents);
 
     await client.close();
 
     res.status(200).json({ 
       status: 'ok',
-      insertedId: result.insertedId
+      insertedCount: result.insertedCount,
+      insertedIds: result.insertedIds
     });
   } catch (err) {
     console.error('[ERROR] MongoDB insert failed:', err);
