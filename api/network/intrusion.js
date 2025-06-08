@@ -38,7 +38,7 @@ router.post('/', async (req, res) => {
       ...data,
       timestamp: new Date(data.timestamp),
       receivedAt: new Date(),
-      sourceCertSubject: req.connection.getPeerCertificate()?.subject || {},
+      sourceCertSubject: req.headers['x-ssl-client-subject'] || 'N/A',
     });
 
     await client.close();
