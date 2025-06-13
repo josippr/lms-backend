@@ -7,7 +7,6 @@ require('dotenv').config();
 
 const auth = require('./api/auth/auth');
 const devices = require('./api/devices/devices');
-const data = require('./api/data/data');
 const registerDevice = require('./api/register-device/register-device');
 const network = require('./api/network/network');
 const usageMetrics = require('./api/logs/usage-metrics');
@@ -38,7 +37,6 @@ app.use(express.json());
 
 app.use('/api/users', auth);
 app.use('/api/devices', devices);
-app.use('/api/data', data);
 app.use('/api/register-device', registerDevice, limiter);
 app.use('/api/network', network);
 app.use('/api/network/intrusion', intrusion);
