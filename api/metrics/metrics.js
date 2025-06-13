@@ -8,7 +8,6 @@ const MONGO_DB_NAME = process.env.MONGO_DB_NAME;
 const AUTH_SOURCE = process.env.AUTH_SOURCE;
 const collectionName = 'devices-metrics';
 
-// Middleware: Apply JWT verification
 router.get('/:uid', verifyToken, async (req, res) => {
     const uid = req.params.uid?.trim();
 
