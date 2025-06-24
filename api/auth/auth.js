@@ -92,4 +92,27 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.post('/verify-token', async (req, res) => {
+  const token = req.body.token;
+
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded.userId);
+
+    if (!user || !user.isActive) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    return res.json({ user: { username: user.username, role: user.role } });
+  } catch (err) {
+    console.error(err);
+    return res.status(401).json({ message: 'Token verification failed' });
+  }
+});
+
+
 module.exports = router;
