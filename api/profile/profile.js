@@ -12,10 +12,9 @@ const COLLECTION_NAME = 'profiles';
 
 // fetch profile information
 router.get('/', verifyToken, async (req, res) => {
-
     console.log('Received request to fetch profile');
-
     console.log('Fetching profile for user:', req.user.userId);
+    
     try {
         // Connect if not already connected
         if (mongoose.connection.readyState === 0) {
@@ -33,9 +32,8 @@ router.get('/', verifyToken, async (req, res) => {
         console.log('debug - Collection:', COLLECTION_NAME);
         console.log('debug - User ID:', req.user.userId);
 
-        const userId = new mongoose.Types.ObjectId(req.user.userId);
-        console.log('debug - Fetching profile for userId:', userId);
-        const profile = await collection.findOne({ userId });
+        // No longer converting to ObjectId - using string directly
+        const profile = await collection.findOne({ userId: req.user.userId });
         console.log('debug - Fetched profile:', profile);
 
         if (!profile) {
@@ -67,9 +65,9 @@ router.put('/', verifyToken, async (req, res) => {
         const db = mongoose.connection.db;
         const collection = db.collection(COLLECTION_NAME);
 
-        const userId = new mongoose.Types.ObjectId(req.user.userId);
+        // No longer converting to ObjectId - using string directly
         const result = await collection.findOneAndUpdate(
-            { userId },
+            { userId: req.user.userId },
             { $set: updates },
             { returnDocument: 'after' }
         );
