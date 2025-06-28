@@ -1,10 +1,9 @@
-const moongose = require('mongoose');
+const mongoose = require('mongoose');
 const nodeSchema = new mongoose.Schema({
-  nodeId: String,
-  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  sharedWith: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  registered: Boolean,
-  lastSeen: Date,
-  activationTimestamp: Number,
-});
+  UID: String,
+  Type: String,
+  DeviceName: String,
+  lastSync: String,  // or Number if you want to convert
+  // other fields that exist in your actual documents
+}, { collection: 'nodes' });
 module.exports = mongoose.model('Node', nodeSchema);
