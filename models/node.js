@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const nodeSchema = new mongoose.Schema({
-  UID: String,
+  uid: String,
   Type: String,
   DeviceName: String,
   lastSync: String,  // or Number if you want to convert

@@ -7,6 +7,7 @@ require('dotenv').config();
 const MONGO_URL = process.env.MONGO_URI_ORIGINAL;
 const DB_NAME = process.env.MONGO_DB_NAME;
 const COLLECTION_NAME = 'devices-metrics';
+const SYNC_COLLECTION_NAME= 'nodes';
 
 router.post('/usage-metrics', async (req, res) => {
   console.log('Received request headers:', req.headers);
@@ -27,22 +28,32 @@ router.post('/usage-metrics', async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields (uid, timestamp, hardware)' });
   }
 
-  try {
+   try {
     const client = new MongoClient(MONGO_URL);
     await client.connect();
     const db = client.db(DB_NAME);
-    const col = db.collection(COLLECTION_NAME);
 
-    const result = await col.insertOne({
+    // Insert full usage data into devices-metrics
+    const metricsCollection = db.collection(COLLECTION_NAME);
+    const insertResult = await metricsCollection.insertOne({
       ...data,
       receivedAt: new Date()
     });
 
+    // Update lastSync timestamp in nodes collection
+    if (data.lastSync) {
+      const nodesCollection = db.collection(SYNC_COLLECTION_NAME);
+      await nodesCollection.updateOne(
+        { uid: data.uid },
+        { $set: { lastSync: data.lastSync } }
+      );
+    }
+
     await client.close();
-    
+
     res.status(200).json({ 
       status: 'ok',
-      insertedId: result.insertedId
+      insertedId: insertResult.insertedId
     });
   } catch (err) {
     console.error('[ERROR] MongoDB insert failed:', err);
