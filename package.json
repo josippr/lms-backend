@@ -1,6 +1,6 @@
 {
   "name": "lms-backend",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "repo for lms-backend",
   "main": "index.js",
   "scripts": {
