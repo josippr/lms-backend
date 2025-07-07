@@ -35,7 +35,11 @@ mongoose.connect(MONGO_URI_ORIGINAL + MONGO_DB_NAME + AUTH_SOURCE)
   .catch(err => console.error("MongoDB connection error:", err));
 
 
-app.use(cors());
+app.use(cors({
+  origin: ['https://lms.josip-prpic.from.hr'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
+}));
 app.use(express.json());
 
 app.use('/api/users', auth);
