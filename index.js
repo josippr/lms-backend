@@ -14,6 +14,7 @@ const intrusion = require('./api/network/intrusion');
 const metrics = require('./api/metrics/metrics');
 const profile = require('./api/profile/profile');
 const data = require('./api/data/data');
+const json = require('./api/json/json');
 
 const app = express();
 const port = process.env.PORT;
@@ -47,6 +48,7 @@ app.use('/api/logs', usageMetrics);
 app.use('/api/metrics', metrics);
 app.use('/api/profile', profile);
 app.use('/api/data', data);
+app.use('/api/json', json);
 
 app.use(router);
 
