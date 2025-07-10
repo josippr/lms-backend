@@ -3,6 +3,8 @@ const cors = require('cors');
 const rateLimit = require("express-rate-limit");
 const mongoose = require('mongoose');
 const router = express.Router();
+const http = require('http'); // Add this
+const { Server } = require('socket.io'); // Add this
 require('dotenv').config();
 
 const auth = require('./api/auth/auth');
@@ -17,6 +19,14 @@ const data = require('./api/data/data');
 const json = require('./api/json/json');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
+
 const port = process.env.PORT;
 
 const MONGO_URI = process.env.MONGO_URI;
@@ -24,23 +34,14 @@ const MONGO_URI_ORIGINAL = process.env.MONGO_URI_ORIGINAL;
 const MONGO_DB_NAME = process.env.MONGO_DB_NAME;
 const AUTH_SOURCE = process.env.AUTH_SOURCE;
 
-// 10 requests per 15 minutes
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
 });
 
-// mongoose.set('debug', true);
 mongoose.connect(MONGO_URI_ORIGINAL + MONGO_DB_NAME + AUTH_SOURCE)
   .then(() => console.log("MongoDB connected!"))
   .catch(err => console.error("MongoDB connection error:", err));
-
-
-// app.use(cors({
-//   origin: ['https://lms.josip-prpic.from.hr'],
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   credentials: true
-// }));
 
 app.use(cors());
 app.use(express.json());
@@ -54,7 +55,11 @@ app.use('/api/logs', usageMetrics);
 app.use('/api/metrics', metrics);
 app.use('/api/profile', profile);
 app.use('/api/data', data);
-app.use('/api/json', json);
+
+app.use('/api/json', (req, res, next) => {
+  req.io = io;
+  next();
+}, json);
 
 app.use(router);
 
@@ -62,6 +67,14 @@ app.get('/', (req, res) => {
   res.send("Hello World!");
 });
 
-app.listen(port, () => {
-  console.log(`App listening on port ${port}`);
+server.listen(port, () => {
+  console.log(`App + WebSocket listening on port ${port}`);
+});
+
+io.on('connection', (socket) => {
+  console.log('Frontend connected via WebSocket');
+
+  socket.on('disconnect', () => {
+    console.log('Frontend disconnected');
+  });
 });

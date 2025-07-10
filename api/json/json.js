@@ -12,7 +12,7 @@ const SYNC_COLLECTION_NAME = 'nodes';
 router.post('/', async (req, res) => {
   console.log('[api/json] Received request headers:', req.headers);
 
-  // 1. SSL client cert check
+  // SSL client cert check
   if (req.headers['x-ssl-client-verify'] !== 'SUCCESS') {
     return res.status(403).json({
       error: 'Client certificate verification failed',
@@ -24,8 +24,8 @@ router.post('/', async (req, res) => {
   }
 
   const data = req.body;
+  const io = req.io;
 
-  // 2. Determine format
   const isLegacy = data?.uid && data?.hardware && data?.timestamp;
 
   try {
@@ -36,13 +36,11 @@ router.post('/', async (req, res) => {
     if (isLegacy) {
       console.log('[api/json] Handling legacy hardware metrics from UID:', data.uid);
 
-      // Insert raw usage data
       const result = await db.collection(COLLECTION_NAME).insertOne({
         ...data,
         receivedAt: new Date()
       });
 
-      // Update lastSync in 'nodes' collection
       if (data.hardware.lastSync) {
         await db.collection(SYNC_COLLECTION_NAME).updateOne(
           { uid: data.uid },
@@ -50,11 +48,28 @@ router.post('/', async (req, res) => {
         );
       }
 
+      // Emit live update
+      if (io) {
+        io.emit('new_metric', {
+          uid: data.uid,
+          timestamp: data.timestamp,
+          hostname: data.hardware?.hostname,
+          temperature: data.hardware?.cpu_temperature_c,
+          uptime: data.hardware?.uptime_sec,
+          memory: data.hardware?.memory_total_mb,
+          memoryUsed: data.hardware?.memory_used_percent,
+          memoryAvailable: data.hardware?.memory_available_percent,
+          cpuPercent: data.hardware?.cpu_percent,
+          disk: data.hardware?.disk_total_mb,
+          receivedAt: new Date()
+        });
+      }
+
       await client.close();
       return res.status(200).json({ status: 'ok', insertedId: result.insertedId });
     }
 
-    // 3. New structure
+    // New structure
     const { deviceId, timestamp, payload } = data;
 
     if (!deviceId || !timestamp || !payload) {
@@ -63,14 +78,28 @@ router.post('/', async (req, res) => {
     }
 
     const saveTasks = [];
+    const now = new Date();
 
     if (payload.metrics) {
-      saveTasks.push(Metrics.create({
+      const metricDoc = {
         version: data.version || '1.0',
         deviceId,
         timestamp,
         payload: { metrics: payload.metrics }
-      }));
+      };
+
+      saveTasks.push(Metrics.create(metricDoc));
+
+      // Emit real-time metric to frontend
+      if (io) {
+        io.emit('new_metric', {
+          type: 'modern',
+          deviceId,
+          timestamp,
+          payload: payload.metrics,
+          receivedAt: now
+        });
+      }
     }
 
     await Promise.all(saveTasks);
