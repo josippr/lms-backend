@@ -13,6 +13,6 @@ COPY . .
 
 # Set environment variables
 ENV NODE_ENV=production
-EXPOSE 1055
+EXPOSE 1304
 
 CMD ["node", "index.js"]
