@@ -28,26 +28,31 @@ router.get('/:uid', verifyToken, async (req, res) => {
         const db = mongoose.connection.db;
         const collection = db.collection(collectionName);
 
-        console.log(`Searching for UID: ${uid}`);
+        const twoWeeksAgo = new Date();
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+        console.log(`Searching for UID: ${uid} since ${twoWeeksAgo.toISOString()}`);
 
         const results = await collection
-            .find({ uid: uid })
+            .find({
+                uid: uid,
+                receivedAt: { $gte: twoWeeksAgo }
+            })
             .sort({ receivedAt: -1 })
-            .limit(1)
             .toArray();
-        console.log(`Found ${results.length} metrics for UID: ${uid}. Results:`, results);
+
+        console.log(`Found ${results.length} metrics for UID: ${uid} in the past 2 weeks.`);
 
         if (!results.length) {
-            return res.status(404).json({ message: `No metrics found for UID: ${uid}` });
+            return res.status(404).json({ message: `No metrics found for UID: ${uid} in the past 2 weeks` });
         }
 
-        res.json(results[0]);
+        res.json(results);
 
     } catch (err) {
         console.error('Error while fetching metrics:', err);
         res.status(500).json({ message: 'Server error', error: err.message });
     }
 });
-
 
 module.exports = router;
