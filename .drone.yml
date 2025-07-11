@@ -26,9 +26,9 @@ steps:
         sshpass -vv -p $SSH_PASS ssh -o StrictHostKeyChecking=no -p 22 $SSH_USER@$SSH_HOST "
           cd /mnt/data/deployments/lms-backend
           git pull origin master
-          docker-compose down
-          docker-compose build
-          docker-compose up -d
+          docker compose down
+          docker compose build
+          docker compose up -d
           docker system prune -f
         "
 
