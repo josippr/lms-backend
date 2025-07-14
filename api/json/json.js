@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { MongoClient } = require('mongodb');
 const Metrics = require('../../models/metrics');
+const NetworkStatus = require('../../models/networkStatus');
 require('dotenv').config();
 
 const MONGO_URL = process.env.MONGO_URI_ORIGINAL;
@@ -97,6 +98,28 @@ router.post('/', async (req, res) => {
           deviceId,
           timestamp,
           payload: payload.metrics,
+          receivedAt: now
+        });
+      }
+    }
+
+    // Handle network status metrics
+    if (payload.networkStatus) {
+      const networkDoc = {
+        version: data.version || '1.0',
+        deviceId,
+        timestamp,
+        payload: { networkStatus: payload.networkStatus }
+      };
+
+      saveTasks.push(NetworkStatus.create(networkDoc));
+
+      if (io) {
+        io.emit('new_metric', {
+          type: 'network',
+          deviceId,
+          timestamp,
+          payload: payload.networkStatus,
           receivedAt: now
         });
       }
