@@ -37,11 +37,11 @@ module.exports = async function networkStatusData(userId) {
   let status = 'unknown';
   if (jitter !== null && loss !== null && bandwidth !== null) {
     if (loss > 20 || jitter > 10000 || bandwidth < 100) {
-      status = 'critical';
+      status = 'poor';
     } else if (loss > 5 || jitter > 3000 || bandwidth < 2000) {
-      status = 'warning';
+      status = 'moderate';
     } else {
-      status = 'healthy';
+      status = 'good';
     }
   }
 
