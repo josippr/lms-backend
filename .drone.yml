@@ -25,11 +25,12 @@ steps:
       - |
         sshpass -vv -p $SSH_PASS ssh -o StrictHostKeyChecking=no -p 22 $SSH_USER@$SSH_HOST "
           cd /mnt/data/deployments/lms-backend
-          git fetch origin
-          git reset --hard origin/master
-          docker compose down
+          docker compose down --remove-orphans
+          docker rm -f lms-backend || true
+          git pull origin master
+          npm install
           docker compose build --no-cache
-          docker compose up -d
+          docker compose up -d --force-recreate
           docker system prune -f
         "
 
