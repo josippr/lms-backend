@@ -21,17 +21,18 @@ steps:
       SSH_PASS:
         from_secret: ssh_password
     commands:
-      - apk add --no-cache openssh sshpass
-      - |
-        sshpass -vv -p $SSH_PASS ssh -o StrictHostKeyChecking=no -p 22 $SSH_USER@$SSH_HOST "
-          cd /mnt/data/deployments/lms-backend
-          docker compose down
-          git pull origin master
-          npm install
-          docker compose build --no-cache
-          docker compose up -d
-          docker system prune -f
-        "
+  - apk add --no-cache openssh sshpass
+  - |
+    sshpass -vv -p $SSH_PASS ssh -o StrictHostKeyChecking=no -p 22 $SSH_USER@$SSH_HOST "
+      cd /mnt/data/deployments/lms-backend
+      docker compose down --remove-orphans
+      docker rm -f lms-backend || true
+      git pull origin master
+      npm install
+      docker compose build --no-cache
+      docker compose up -d --force-recreate
+      docker system prune -f
+    "
 
 volumes:
   - name: dockersock
