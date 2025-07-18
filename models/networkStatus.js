@@ -14,7 +14,8 @@ const NetworkStatusSchema = new mongoose.Schema({
       avgRttMs: { type: Number },
       packetLossPercent: { type: Number },
       outOfOrderCount: { type: Number },
-      jitterMs: { type: Number }
+      jitterMs: { type: Number },
+      pingLatencyMs: { type: Number }
     }
   }
 
