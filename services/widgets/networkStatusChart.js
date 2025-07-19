@@ -11,7 +11,6 @@ module.exports = async function networkStatusData(userId) {
       : { userId: userId };
   
   const profile = await Profile.findOne(queryProfile);
-  console.log(`[networkStatusData] Fetched profile for userId: ${userId}`, profile);
 
   let uid = null;
 
@@ -20,8 +19,6 @@ module.exports = async function networkStatusData(userId) {
   }
   const query = { deviceId: uid };
   const latest = await NetworkStatus.findOne(query).sort({ timestamp: -1 });
-
-  console.log(`[networkStatusData] Fetched latest network status for userId: ${uid}`, latest);
 
   if (!latest) {
     console.warn(`[networkStatusData] No network status data found for userId: ${uid}`);
@@ -33,7 +30,7 @@ module.exports = async function networkStatusData(userId) {
   const loss = ns.packetLossPercent ?? null;
   const bandwidth = ns.bandwidthKbps ?? null;
 
-  // Derive health status
+  // Derive network status
   let status = 'unknown';
   if (jitter !== null && loss !== null && bandwidth !== null) {
     if (loss > 20 || jitter > 10000 || bandwidth < 100) {

@@ -31,8 +31,6 @@ router.get('/:uid', verifyToken, async (req, res) => {
         const twoWeeksAgo = new Date();
         twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
-        console.log(`Searching for UID: ${uid} since ${twoWeeksAgo.toISOString()}`);
-
         const results = await collection
             .find({
                 uid: uid,
@@ -40,8 +38,6 @@ router.get('/:uid', verifyToken, async (req, res) => {
             })
             .sort({ receivedAt: -1 })
             .toArray();
-
-        console.log(`Found ${results.length} metrics for UID: ${uid} in the past 2 weeks.`);
 
         if (!results.length) {
             return res.status(404).json({ message: `No metrics found for UID: ${uid} in the past 2 weeks` });

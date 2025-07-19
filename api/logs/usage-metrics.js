@@ -10,10 +10,9 @@ const COLLECTION_NAME = 'devices-metrics';
 const SYNC_COLLECTION_NAME= 'nodes';
 
 router.post('/usage-metrics', async (req, res) => {
-  console.log('Received request headers:', req.headers);
   
   if (req.headers['x-ssl-client-verify'] !== 'SUCCESS') {
-    console.log('Client certificate verification failed. Headers:', req.headers);
+    console.error('Client certificate verification failed. Headers:', req.headers);
     return res.status(403).json({ 
       error: 'Client certificate verification failed',
       details: {

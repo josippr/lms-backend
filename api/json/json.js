@@ -112,6 +112,8 @@ router.post('/', async (req, res) => {
         payload: { networkStatus: payload.networkStatus }
       };
 
+      console.log("debug payload: ", payload.networkStatus);
+
       saveTasks.push(NetworkStatus.create(networkDoc));
 
       if (io) {

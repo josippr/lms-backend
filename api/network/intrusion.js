@@ -9,11 +9,10 @@ const DB_NAME = process.env.MONGO_DB_NAME;
 const COLLECTION_NAME = 'intrusion-alerts';
 
 router.post('/', async (req, res) => {
-  console.log('Received request headers:', req.headers);
 
   // TLS Client Certificate Verification
   if (req.headers['x-ssl-client-verify'] !== 'SUCCESS') {
-    console.log('Client certificate verification failed. Headers:', req.headers);
+    console.error('Client certificate verification failed. Headers:', req.headers);
     return res.status(403).json({ 
       error: 'Client certificate verification failed',
       details: {
