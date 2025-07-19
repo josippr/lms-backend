@@ -12,8 +12,6 @@ const COLLECTION_NAME = 'profiles';
 
 // fetch profile information
 router.get('/', verifyToken, async (req, res) => {
-    console.log('Received request to fetch profile');
-    console.log('Fetching profile for user:', req.user.userId);
     
     try {
         // Connect if not already connected
@@ -26,15 +24,11 @@ router.get('/', verifyToken, async (req, res) => {
             });
         }
 
-        console.log('debug - Connected to MongoDB');
         const db = mongoose.connection.db;
         const collection = db.collection(COLLECTION_NAME);
-        console.log('debug - Collection:', COLLECTION_NAME);
-        console.log('debug - User ID:', req.user.userId);
 
         // No longer converting to ObjectId - using string directly
         const profile = await collection.findOne({ userId: req.user.userId });
-        console.log('debug - Fetched profile:', profile);
 
         if (!profile) {
             return res.status(404).json({ message: 'Profile not found' });

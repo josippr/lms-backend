@@ -42,7 +42,6 @@ router.post('/usage-metrics', async (req, res) => {
     // Update lastSync timestamp in nodes collection
     if (data.hardware.lastSync) {
       const nodesCollection = db.collection(SYNC_COLLECTION_NAME);
-      console.log('Updating lastSync for UID:', data.uid, 'to', data.hardware.lastSync);
       await nodesCollection.updateOne(
         { uid: data.uid },
         { $set: { lastSync: data.hardware.lastSync } }

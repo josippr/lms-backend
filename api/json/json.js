@@ -11,7 +11,6 @@ const COLLECTION_NAME = 'devices-metrics';
 const SYNC_COLLECTION_NAME = 'nodes';
 
 router.post('/', async (req, res) => {
-  console.log('[api/json] Received request headers:', req.headers);
 
   // SSL client cert check
   if (req.headers['x-ssl-client-verify'] !== 'SUCCESS') {
@@ -35,7 +34,6 @@ router.post('/', async (req, res) => {
     const db = client.db(DB_NAME);
 
     if (isLegacy) {
-      console.log('[api/json] Handling legacy hardware metrics from UID:', data.uid);
 
       const result = await db.collection(COLLECTION_NAME).insertOne({
         ...data,
@@ -111,8 +109,6 @@ router.post('/', async (req, res) => {
         timestamp,
         payload: { networkStatus: payload.networkStatus }
       };
-
-      console.log("debug payload: ", payload.networkStatus);
 
       saveTasks.push(NetworkStatus.create(networkDoc));
 
