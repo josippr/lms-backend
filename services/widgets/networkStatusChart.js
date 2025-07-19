@@ -8,12 +8,30 @@ function classifyNetworkStatus({ jitter, loss, bandwidth, latency }) {
   return 'good';
 }
 
-// Hard caps for sanity filtering
-const HARD_CAPS = {
-  jitterMs: 1000, // ignore any jitter values above 1000ms
-};
+function getWorstMetricWithUnits({ jitter, loss, bandwidth, latency }) {
+  const issues = [];
 
-// Outlier removal using IQR (Interquartile Range)
+  if (loss > 20) issues.push({ key: 'Packet Loss', value: loss, unit: '%', severity: 3 });
+  else if (loss > 5) issues.push({ key: 'Packet Loss', value: loss, unit: '%', severity: 2 });
+
+  if (jitter > 10000) issues.push({ key: 'Jitter', value: jitter, unit: 'ms', severity: 3 });
+  else if (jitter > 3000) issues.push({ key: 'Jitter', value: jitter, unit: 'ms', severity: 2 });
+
+  if (bandwidth < 100) issues.push({ key: 'Bandwidth', value: bandwidth, unit: 'Kbps', severity: 3 });
+  else if (bandwidth < 2000) issues.push({ key: 'Bandwidth', value: bandwidth, unit: 'Kbps', severity: 2 });
+
+  if (latency > 1000) issues.push({ key: 'Latency', value: latency, unit: 'ms', severity: 3 });
+  else if (latency > 300) issues.push({ key: 'Latency', value: latency, unit: 'ms', severity: 2 });
+
+  if (issues.length === 0) return 'No major issues detected';
+
+  issues.sort((a, b) => b.severity - a.severity);
+  const worst = issues[0];
+  const roundedValue = worst.value !== null ? worst.value.toFixed(2) : 'N/A';
+  return `${worst.key} (${roundedValue}${worst.unit})`;
+}
+
+const HARD_CAPS = { jitterMs: 1000 };
 function removeOutliersIQR(arr) {
   if (arr.length < 4) return arr;
   const sorted = [...arr].sort((a, b) => a - b);
@@ -38,8 +56,8 @@ module.exports = async function networkStatusData(userId) {
   }
 
   const query = { deviceId: uid };
-
   const latest = await NetworkStatus.findOne(query).sort({ timestamp: -1 });
+
   if (!latest) {
     console.warn(`[networkStatusData] No network status found for deviceId: ${uid}`);
     return null;
@@ -55,38 +73,25 @@ module.exports = async function networkStatusData(userId) {
     ? classifyNetworkStatus({ jitter, loss, bandwidth, latency })
     : 'unknown';
 
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const latestCause = getWorstMetricWithUnits({ jitter, loss, bandwidth, latency });
+  const latestMessage = `Current network status is ${latestStatus}. Main cause for this is ${latestCause}.`;
 
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
   const hourlyDocs = await NetworkStatus.find({
     deviceId: uid,
     timestamp: { $gte: oneHourAgo }
   });
 
-  const stats = {
-    jitter: [],
-    loss: [],
-    bandwidth: [],
-    latency: []
-  };
+  const stats = { jitter: [], loss: [], bandwidth: [], latency: [] };
 
   for (const doc of hourlyDocs) {
     const data = doc.payload?.networkStatus;
     if (!data) continue;
-
-    if (typeof data.jitterMs === 'number' && data.jitterMs <= HARD_CAPS.jitterMs) {
-      stats.jitter.push(data.jitterMs);
-    }
-
+    if (typeof data.jitterMs === 'number' && data.jitterMs <= HARD_CAPS.jitterMs) stats.jitter.push(data.jitterMs);
     if (typeof data.packetLossPercent === 'number') stats.loss.push(data.packetLossPercent);
     if (typeof data.bandwidthKbps === 'number') stats.bandwidth.push(data.bandwidthKbps);
     if (typeof data.pingLatencyMs === 'number') stats.latency.push(data.pingLatencyMs);
   }
-
-  // IQR filtering
-  stats.jitter = removeOutliersIQR(stats.jitter);
-  stats.loss = removeOutliersIQR(stats.loss);
-  stats.bandwidth = removeOutliersIQR(stats.bandwidth);
-  stats.latency = removeOutliersIQR(stats.latency);
 
   const avg = (arr) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
 
@@ -99,11 +104,15 @@ module.exports = async function networkStatusData(userId) {
     ? classifyNetworkStatus({ jitter: avgJitter, loss: avgLoss, bandwidth: avgBandwidth, latency: avgLatency })
     : 'unknown';
 
+  const hourlyCause = getWorstMetricWithUnits({ jitter: avgJitter, loss: avgLoss, bandwidth: avgBandwidth, latency: avgLatency });
+  const hourlyMessage = `Current network status is ${hourlyStatus}. Main cause for this is ${hourlyCause}.`;
+
   return {
     deviceId: uid,
     timestamp: latest.timestamp,
     latest: {
       status: latestStatus,
+      message: latestMessage,
       networkParams: {
         bandwidthKbps: bandwidth,
         packetLossPercent: loss,
@@ -116,6 +125,7 @@ module.exports = async function networkStatusData(userId) {
     },
     hourlyAverage: {
       status: hourlyStatus,
+      message: hourlyMessage,
       sampleCount: hourlyDocs.length,
       expectedSamples: 12,
       isDataIncomplete: hourlyDocs.length < 8,
