@@ -8,27 +8,25 @@ function classifyNetworkStatus({ jitter, loss, bandwidth, latency }) {
   return 'good';
 }
 
-function getWorstMetricWithUnits({ jitter, loss, bandwidth, latency }) {
+function getWorstMetric({ jitter, loss, bandwidth, latency }) {
   const issues = [];
 
-  if (loss > 20) issues.push({ key: 'Packet Loss', value: loss, unit: '%', severity: 3 });
-  else if (loss > 5) issues.push({ key: 'Packet Loss', value: loss, unit: '%', severity: 2 });
+  if (loss > 20) issues.push({ key: 'Packet Loss', value: loss, severity: 3 });
+  else if (loss > 5) issues.push({ key: 'Packet Loss', value: loss, severity: 2 });
 
-  if (jitter > 10000) issues.push({ key: 'Jitter', value: jitter, unit: 'ms', severity: 3 });
-  else if (jitter > 3000) issues.push({ key: 'Jitter', value: jitter, unit: 'ms', severity: 2 });
+  if (jitter > 10000) issues.push({ key: 'Jitter', value: jitter, severity: 3 });
+  else if (jitter > 3000) issues.push({ key: 'Jitter', value: jitter, severity: 2 });
 
-  if (bandwidth < 100) issues.push({ key: 'Bandwidth', value: bandwidth, unit: 'Kbps', severity: 3 });
-  else if (bandwidth < 2000) issues.push({ key: 'Bandwidth', value: bandwidth, unit: 'Kbps', severity: 2 });
+  if (bandwidth < 100) issues.push({ key: 'Bandwidth', value: bandwidth, severity: 3 });
+  else if (bandwidth < 2000) issues.push({ key: 'Bandwidth', value: bandwidth, severity: 2 });
 
-  if (latency > 1000) issues.push({ key: 'Latency', value: latency, unit: 'ms', severity: 3 });
-  else if (latency > 300) issues.push({ key: 'Latency', value: latency, unit: 'ms', severity: 2 });
+  if (latency > 1000) issues.push({ key: 'Latency', value: latency, severity: 3 });
+  else if (latency > 300) issues.push({ key: 'Latency', value: latency, severity: 2 });
 
-  if (issues.length === 0) return 'No major issues detected';
+  if (issues.length === 0) return null;
 
   issues.sort((a, b) => b.severity - a.severity);
-  const worst = issues[0];
-  const roundedValue = worst.value !== null ? worst.value.toFixed(2) : 'N/A';
-  return `${worst.key} (${roundedValue}${worst.unit})`;
+  return `${issues[0].key} (${issues[0].value})`;
 }
 
 const HARD_CAPS = { jitterMs: 1000 };
@@ -73,8 +71,10 @@ module.exports = async function networkStatusData(userId) {
     ? classifyNetworkStatus({ jitter, loss, bandwidth, latency })
     : 'unknown';
 
-  const latestCause = getWorstMetricWithUnits({ jitter, loss, bandwidth, latency });
-  const latestMessage = `Current network status is ${latestStatus}. Main cause for this is ${latestCause}.`;
+  const latestCause = getWorstMetric({ jitter, loss, bandwidth, latency });
+  const latestMessage = latestStatus === 'good'
+    ? 'Current network status is good. No significant issues detected.'
+    : `Current network status is ${latestStatus}. Main cause for this is ${latestCause}.`;
 
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
   const hourlyDocs = await NetworkStatus.find({
@@ -104,8 +104,15 @@ module.exports = async function networkStatusData(userId) {
     ? classifyNetworkStatus({ jitter: avgJitter, loss: avgLoss, bandwidth: avgBandwidth, latency: avgLatency })
     : 'unknown';
 
-  const hourlyCause = getWorstMetricWithUnits({ jitter: avgJitter, loss: avgLoss, bandwidth: avgBandwidth, latency: avgLatency });
-  const hourlyMessage = `Current network status is ${hourlyStatus}. Main cause for this is ${hourlyCause}.`;
+  const hourlyCause = getWorstMetric({
+    jitter: avgJitter,
+    loss: avgLoss,
+    bandwidth: avgBandwidth,
+    latency: avgLatency
+  });
+  const hourlyMessage = hourlyStatus === 'good'
+    ? 'Current network status is good. No significant issues detected.'
+    : `Current network status is ${hourlyStatus}. Main cause for this is ${hourlyCause}.`;
 
   return {
     deviceId: uid,
