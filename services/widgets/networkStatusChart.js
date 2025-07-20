@@ -128,7 +128,8 @@ module.exports = async function networkStatusData(userId) {
         deviceCount: ns.deviceCount ?? 0,
         activeDevices: ns.activeDevices ?? [],
         outOfOrderCount: ns.outOfOrderCount ?? null,
-      }
+      },
+      invalidFlag: bandwidth === null || loss === null || jitter === null || latency === null
     },
     hourlyAverage: {
       status: hourlyStatus,
@@ -137,11 +138,13 @@ module.exports = async function networkStatusData(userId) {
       expectedSamples: 12,
       isDataIncomplete: hourlyDocs.length < 8,
       networkParams: {
-        avgBandwidthKbps: avgBandwidth !== null ? +avgBandwidth.toFixed(2) : null,
-        avgPacketLossPercent: avgLoss !== null ? +avgLoss.toFixed(2) : null,
-        avgJitterMs: avgJitter !== null ? +avgJitter.toFixed(2) : null,
-        avgPingLatencyMs: avgLatency !== null ? +avgLatency.toFixed(2) : null,
-      }
+        avgBandwidthKbps: avgBandwidth !== null ? +avgBandwidth.toFixed(2) : -1,
+        avgPacketLossPercent: avgLoss !== null ? +avgLoss.toFixed(2) : -1,
+        avgJitterMs: avgJitter !== null ? +avgJitter.toFixed(2) : -1,
+        avgPingLatencyMs: avgLatency !== null ? +avgLatency.toFixed(2) : -1,
+      },
+      invalidFlag: avgBandwidth === null || avgLoss === null || avgJitter === null || avgLatency === null
     }
   };
-};
+}
+  
