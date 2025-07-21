@@ -8,6 +8,7 @@ const NetworkStatusSchema = new mongoose.Schema({
   payload: {
     networkStatus: {
       bandwidthKbps: { type: Number },
+      maxBandwidthKbps: { type: Number },
       packetCount: { type: Number },
       deviceCount: { type: Number },
       activeDevices: [{ type: String }],

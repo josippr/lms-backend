@@ -2,9 +2,16 @@ const NetworkStatus = require('../../models/networkStatus');
 const Profile = require('../../models/profile');
 const { Types: { ObjectId } } = require('mongoose');
 
-function classifyNetworkStatus({ jitter, loss, bandwidth, latency }) {
-  if (loss > 20 || jitter > 10000 || bandwidth < 100 || latency > 1000) return 'poor';
-  if (loss > 5 || jitter > 3000 || bandwidth < 2000 || latency > 300) return 'moderate';
+function classifyNetworkStatus({ jitter, loss, bandwidth, latency, maxBandwidth }) {
+  // Avoid false negatives if maxBandwidth not provided
+  const utilization = maxBandwidth ? (bandwidth / maxBandwidth) * 100 : 0;
+
+  if (loss > 10 || jitter > 50 || latency > 500) return 'poor';
+  if (loss > 1 || jitter > 20 || latency > 150) return 'moderate';
+
+  // Utilization doesn't affect status unless extremely high
+  if (utilization > 90) return 'moderate'; // nearing saturation
+
   return 'good';
 }
 
@@ -65,10 +72,11 @@ module.exports = async function networkStatusData(userId) {
   const jitter = ns.jitterMs ?? null;
   const loss = ns.packetLossPercent ?? null;
   const bandwidth = ns.bandwidthKbps ?? null;
+  const maxBandwidth = ns.maxBandwidthKbps ?? null;
   const latency = ns.pingLatencyMs ?? null;
 
-  const latestStatus = (jitter !== null && loss !== null && bandwidth !== null)
-    ? classifyNetworkStatus({ jitter, loss, bandwidth, latency })
+  const latestStatus = (jitter !== null && loss !== null && bandwidth !== null, maxBandwidth !== null)
+    ? classifyNetworkStatus({ jitter, loss, bandwidth, latency, maxBandwidth })
     : 'unknown';
 
   const latestCause = getWorstMetric({ jitter, loss, bandwidth, latency });
