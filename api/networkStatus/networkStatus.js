@@ -33,10 +33,10 @@ router.get('/:uid', verifyToken, async (req, res) => {
 
         const results = await collection
             .find({
-                uid: uid,
-                receivedAt: { $gte: twoWeeksAgo }
+                deviceId: uid,
+                timestamp: { $gte: twoWeeksAgo }
             })
-            .sort({ receivedAt: -1 })
+            .sort({ timestamp: -1 })
             .toArray();
 
         if (!results.length) {
