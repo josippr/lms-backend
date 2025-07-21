@@ -3,8 +3,8 @@ const cors = require('cors');
 const rateLimit = require("express-rate-limit");
 const mongoose = require('mongoose');
 const router = express.Router();
-const http = require('http'); // Add this
-const { Server } = require('socket.io'); // Add this
+const http = require('http');
+const { Server } = require('socket.io');
 require('dotenv').config();
 
 const auth = require('./api/auth/auth');
@@ -17,6 +17,7 @@ const metrics = require('./api/metrics/metrics');
 const profile = require('./api/profile/profile');
 const data = require('./api/data/data');
 const json = require('./api/json/json');
+const networkStatus = require('./api/networkStatus/networkStatus');
 
 const app = express();
 const server = http.createServer(app);
@@ -55,6 +56,7 @@ app.use('/api/logs', usageMetrics);
 app.use('/api/metrics', metrics);
 app.use('/api/profile', profile);
 app.use('/api/data', data);
+app.use('/api/networkStatus', networkStatus);
 
 app.use('/api/json', (req, res, next) => {
   req.io = io;
