@@ -117,7 +117,9 @@ router.post('/', async (req, res) => {
           type: 'network',
           deviceId,
           timestamp,
-          payload: payload.networkStatus,
+          payload: {
+            networkStatus: payload.networkStatus
+          },
           receivedAt: now
         });
       }
