@@ -112,15 +112,15 @@ router.post('/', async (req, res) => {
 
       saveTasks.push(NetworkStatus.create(networkDoc));
 
-      // if (io) {
-      //   io.emit('new_metric', {
-      //     type: 'network',
-      //     deviceId,
-      //     timestamp,
-      //     payload: payload.networkStatus,
-      //     receivedAt: now
-      //   });
-      // }
+      if (io) {
+        io.emit('new_network_status', {
+          type: 'network',
+          deviceId,
+          timestamp,
+          payload: payload.networkStatus,
+          receivedAt: now
+        });
+      }
     }
 
     await Promise.all(saveTasks);
