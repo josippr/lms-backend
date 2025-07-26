@@ -3,6 +3,9 @@ const router = express.Router();
 const { MongoClient } = require('mongodb');
 const Metrics = require('../../models/metrics');
 const NetworkStatus = require('../../models/networkStatus');
+const DeviceScan = require('../../models/deviceScan');
+const DeviceMetadata = require('../../models/deviceMetadata');
+
 require('dotenv').config();
 
 const MONGO_URL = process.env.MONGO_URI_ORIGINAL;
@@ -123,6 +126,40 @@ router.post('/', async (req, res) => {
           receivedAt: now
         });
       }
+    }
+
+    // Handle device scan data
+    if (payload.deviceScans && Array.isArray(payload.deviceScans)) {
+      const deviceScanDocs = payload.deviceScans.map(entry => ({
+        ...entry,
+        deviceId,
+        receivedAt: now
+      }));
+      saveTasks.push(DeviceScan.insertMany(deviceScanDocs, { ordered: false }));
+    }
+
+    // Handle device metadata
+    if (payload.deviceMetadata && Array.isArray(payload.deviceMetadata)) {
+      const metadataOps = payload.deviceMetadata.map(entry => ({
+        updateOne: {
+          filter: { mac: entry.mac },
+          update: {
+            $setOnInsert: { firstSeen: entry.firstSeen },
+            $set: {
+              uid: entry.uid,
+              hostname: entry.hostname,
+              lastIP: entry.lastIP,
+              trusted: entry.trusted,
+              notes: entry.notes,
+              tags: entry.tags,
+              lastSeen: entry.lastSeen
+            }
+          },
+          upsert: true
+        }
+      }));
+
+      saveTasks.push(DeviceMetadata.bulkWrite(metadataOps, { ordered: false }));
     }
 
     await Promise.all(saveTasks);
