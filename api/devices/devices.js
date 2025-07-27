@@ -45,4 +45,31 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
+router.put('/update/:mac', verifyToken, async (req, res) => {
+  const macAddress = req.params.mac.toUpperCase();
+  const { trustLevel } = req.body;
+
+  console.log(`[Update Trust] MAC: ${macAddress}, Trust Level: ${trustLevel}`);
+
+  if (!['trusted', 'neutral', 'untrusted'].includes(trustLevel)) {
+    return res.status(400).json({ error: 'Invalid trust level' });
+  }
+
+  try {
+    const result = await DeviceMetadata.updateOne(
+      { mac: macAddress },
+      { $set: { trusted: trustLevel } }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'Device not found' });
+    }
+
+    res.json({ message: 'Trust level updated' });
+  } catch (error) {
+    console.error('[Update Trust] Error:', error);
+    res.status(500).json({ error: 'Update failed' });
+  }
+});
+
 module.exports = router;
