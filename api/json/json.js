@@ -144,14 +144,16 @@ router.post('/', async (req, res) => {
         updateOne: {
           filter: { mac: entry.mac },
           update: {
-            $setOnInsert: { firstSeen: entry.firstSeen },
+            $setOnInsert: {
+              firstSeen: entry.firstSeen,
+              trusted: entry.trusted ?? 'neutral',
+              notes: entry.notes ?? '',
+              tags: entry.tags ?? []
+            },
             $set: {
               uid: entry.uid,
               hostname: entry.hostname,
               lastIP: entry.lastIP,
-              trusted: entry.trusted,
-              notes: entry.notes,
-              tags: entry.tags,
               lastSeen: entry.lastSeen
             }
           },
