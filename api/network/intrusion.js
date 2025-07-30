@@ -32,10 +32,11 @@ router.post('/', async (req, res) => {
   const documents = alerts.map(alert => ({
     uid: data.uid,
     alert,
+    resolved: false,
     timestamp: new Date(data.timestamp),
     receivedAt: new Date(),
-    sourceCertSubject: req.headers['x-ssl-client-subject'] || 'N/A'
   }));
+
 
   try {
     const client = new MongoClient(MONGO_URL);
