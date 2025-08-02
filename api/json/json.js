@@ -106,27 +106,56 @@ router.post('/', async (req, res) => {
 
     // Handle network status metrics
     if (payload.networkStatus) {
+      const rawStatus = payload.networkStatus;
+
+      const normalizedDevices = (rawStatus.activeDevices || []).map(dev => {
+        if (typeof dev === 'string') {
+          return {
+            ip: dev,
+            hostname: null,
+            model: null,
+            macAddress: null,
+            lastSeen: Math.floor(Date.now() / 1000)
+          };
+        } else {
+          return {
+            ip: dev.ip || null,
+            hostname: dev.hostname || null,
+            model: dev.model || null,
+            macAddress: dev.macAddress || null,
+            lastSeen: dev.lastSeen || Math.floor(Date.now() / 1000)
+          };
+        }
+      });
+
+      const normalizedNetworkStatus = {
+        ...rawStatus,
+        activeDevices: normalizedDevices
+      };
+
       const networkDoc = {
         version: data.version || '1.0',
         deviceId,
         timestamp,
-        payload: { networkStatus: payload.networkStatus }
+        payload: { networkStatus: normalizedNetworkStatus }
       };
 
       saveTasks.push(NetworkStatus.create(networkDoc));
 
       if (io) {
+        console.log("debug normalized network status: ", normalizedNetworkStatus);
         io.emit('new_network_status', {
           type: 'network',
           deviceId,
           timestamp,
           payload: {
-            networkStatus: payload.networkStatus
+            networkStatus: normalizedNetworkStatus
           },
           receivedAt: now
         });
       }
     }
+
 
     // Handle device scan data
     if (payload.deviceScans && Array.isArray(payload.deviceScans)) {
