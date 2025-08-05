@@ -45,6 +45,39 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
+router.get('/:uid', verifyToken, async (req, res) => {
+  const uid = req.params.uid?.trim();
+  try {
+    // Fetch all metadata for this uid
+    const metadataList = await DeviceMetadata.find({ uid }).lean();
+
+    // Fetch latest scan per MAC for this uid
+    const macs = metadataList.map(meta => meta.mac);
+    const latestScans = await DeviceScan.aggregate([
+      { $match: { mac: { $in: macs } } },
+      { $sort: { receivedAt: -1 } },
+      { $group: { _id: '$mac', scan: { $first: '$$ROOT' } } }
+    ]);
+
+    // Index scans by MAC
+    const scanMap = {};
+    latestScans.forEach(entry => {
+      scanMap[entry._id] = entry.scan;
+    });
+
+    // Merge metadata and scan results
+    const combined = metadataList.map(meta => ({
+      ...meta,
+      lastScan: scanMap[meta.mac] || null
+    }));
+
+    return res.status(200).json({ devices: combined });
+  } catch (error) {
+    console.error('[api/devices/:uid] Error:', error);
+    return res.status(500).json({ error: 'Failed to fetch devices by uid', details: error.message });
+  }
+});
+
 router.put('/update/:mac', verifyToken, async (req, res) => {
   const macAddress = req.params.mac.toUpperCase();
   const { trustLevel } = req.body;
