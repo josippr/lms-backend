@@ -5,6 +5,7 @@ const Metrics = require('../../models/metrics');
 const NetworkStatus = require('../../models/networkStatus');
 const DeviceScan = require('../../models/deviceScan');
 const DeviceMetadata = require('../../models/deviceMetadata');
+const Speedtest = require('../../models/speedtest');
 
 require('dotenv').config();
 
@@ -82,6 +83,8 @@ router.post('/', async (req, res) => {
     const saveTasks = [];
     const now = new Date();
 
+    console.log("debug payload: ", payload);
+
     if (payload.metrics) {
       const metricDoc = {
         version: data.version || '1.0',
@@ -154,6 +157,30 @@ router.post('/', async (req, res) => {
           receivedAt: now
         });
       }
+    }
+
+    // save to network-speedtest collection
+    if (payload.speedtest) {
+
+      const speedtestDoc = {
+        version: data.version || '1.0',
+        deviceId,
+        timestamp,
+        payload: { speedtest: payload.speedtest }
+      };
+
+      saveTasks.push(Speedtest.create(speedtestDoc));
+
+      // if (io) {
+      //   io.emit('new_speedtest', {
+      //     type: 'speedtest',
+      //     deviceId,
+      //     timestamp,
+      //     payload: payload.speedtest,
+      //     receivedAt: now
+      //   });
+      // }
+
     }
 
 
