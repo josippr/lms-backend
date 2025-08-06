@@ -77,10 +77,24 @@ server.listen(port, () => {
   console.log(`App + WebSocket listening on port ${port}`);
 });
 
+// io.on('connection', (socket) => {
+//   console.log('Frontend connected via WebSocket');
+
+//   socket.on('disconnect', () => {
+//     console.log('Frontend disconnected');
+//   });
+// });
+
 io.on('connection', (socket) => {
-  console.log('Frontend connected via WebSocket');
+  console.log('User connected:', socket.id);
+
+  socket.on('join_device_room', (deviceId) => {
+    // Optionally validate if the user is allowed to join
+    socket.join(deviceId);
+    console.log(`Socket ${socket.id} joined room: ${deviceId}`);
+  });
 
   socket.on('disconnect', () => {
-    console.log('Frontend disconnected');
+    console.log('User disconnected:', socket.id);
   });
 });

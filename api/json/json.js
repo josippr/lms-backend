@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
 
       // Emit live update
       if (io) {
-        io.emit('new_metric', {
+        io.to(data?.uid).emit('new_metric', {
           uid: data.uid,
           timestamp: data.timestamp,
           hostname: data.hardware?.hostname,
@@ -97,7 +97,7 @@ router.post('/', async (req, res) => {
 
       // Emit real-time metric to frontend
       // if (io) {
-      //   io.emit('new_metric', {
+      //   io.to(deviceId).emit('new_metric', {
       //     type: 'modern',
       //     deviceId,
       //     timestamp,
@@ -147,7 +147,7 @@ router.post('/', async (req, res) => {
 
       if (io) {
         console.log("debug normalized network status: ", normalizedNetworkStatus);
-        io.emit('new_network_status', {
+        io.to(deviceId).emit('new_network_status', {
           type: 'network',
           deviceId,
           timestamp,
@@ -172,7 +172,7 @@ router.post('/', async (req, res) => {
       saveTasks.push(Speedtest.create(speedtestDoc));
 
       // if (io) {
-      //   io.emit('new_speedtest', {
+      //   io.to(deviceId).emit('new_speedtest', {
       //     type: 'speedtest',
       //     deviceId,
       //     timestamp,
