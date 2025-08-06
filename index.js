@@ -19,6 +19,7 @@ const data = require('./api/data/data');
 const json = require('./api/json/json');
 const networkStatus = require('./api/networkStatus/networkStatus');
 const alert = require('./api/alert/alert');
+const nodes = require('./api/nodes/nodes');
 
 const app = express();
 const server = http.createServer(app);
@@ -59,6 +60,7 @@ app.use('/api/profile', profile);
 app.use('/api/data', data);
 app.use('/api/networkStatus', networkStatus);
 app.use('/api/alert', alert);
+app.use('/api/nodes', nodes);
 
 app.use('/api/json', (req, res, next) => {
   req.io = io;
