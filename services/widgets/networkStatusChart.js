@@ -113,10 +113,10 @@ module.exports = async function networkStatusData(userId) {
     : 'unknown';
 
   const hourlyCause = getWorstMetric({
-    jitter: avgJitter,
-    loss: avgLoss,
-    bandwidth: avgBandwidth,
-    latency: avgLatency
+    jitter: avgJitter !== null ? +avgJitter.toFixed(2) : avgJitter,
+    loss: avgLoss !== null ? +avgLoss.toFixed(2) : avgLoss,
+    bandwidth: avgBandwidth !== null ? +avgBandwidth.toFixed(2) : avgBandwidth,
+    latency: avgLatency !== null ? +avgLatency.toFixed(2) : avgLatency
   });
   const hourlyMessage = hourlyStatus === 'good'
     ? 'Current network status is good. No significant issues detected.'
