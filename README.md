@@ -1,6 +1,8 @@
 
 # LMS Backend
 
+This project is backend component of larger Network Monitoring System developed as Masters thesis @ Zagreb University of Applied Sciences. For more information, visit central repository.
+
 Backend API for a modern network monitoring and device management platform. Built with Node.js, Express, and MongoDB (Mongoose & native drivers). Provides authentication, device registration, metrics logging, real-time updates, and comprehensive data management.
 
 
